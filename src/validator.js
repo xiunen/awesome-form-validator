@@ -8,35 +8,44 @@ class Validator{
         return Validator.instance
     }
 
-    setOptions(options={}){
-        this.options = {
-            ...options,
-            messages: {
-                [REQUIRED]: 'required',
-                [MIN_LENGTH]:'more than {{number}} chars required',
-                [MAX_LENGTH]:'less than {{number}} chars required',
-                [MIN]: 'more than {{number}} required',
-                [MAX]: 'less than {{number}} required',
-                [PATTERN]: 'invalid pattern',
-                [FUNC]:'invalid input',
-                [NUMBER]: 'number required',
-                ...(options.messages||{})
-            }
-        }
-    }
+    // setOptions(options={}){
+    //     this.options = {
+    //         ...options,
+    //         messages: {
+    //             ...(options.messages||{})
+    //         }
+    //     }
+    // }
 
-    validate(form, rules={}){
+    validate(form={}, rules={}){
         let result = true;
-        let messages = [];
+        const {messages} = this.options;
+        const validateMessages = {};
         const keys = Object.keys(rules);
+        
         keys.forEach(key=>{
-            const itemRules = rules[key];
+            const fieldRules = rules[key];
+            const fieldMessages = [];
+            const value = form[key];
 
+            fieldRules.forEach(rule=>{
+                switch(rule.type){
+                    case REQUIRED: {
+                        if(!value && typeof value!=='number'){
+                            result = false;
+                            fieldMessages.push(rule.message);
+                        }
+                    }
+                }
+            });
+
+            if(fieldMessages.length){
+                validateMessages[key] = fieldMessages;
+            }
         })
-        //todo validate with rules
         return {
             result,
-            messages
+            messages: validateMessages
         }
     }
 }
