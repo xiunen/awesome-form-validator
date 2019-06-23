@@ -19,12 +19,14 @@ class Validator{
 
     validate(form={}, rules={}){
         let result = true;
-        const {messages} = this.options;
         const validateMessages = {};
         const keys = Object.keys(rules);
         
         keys.forEach(key=>{
             const fieldRules = rules[key];
+
+            if(!Array.isArray(fieldRules))return;
+            
             const fieldMessages = [];
             const value = form[key];
 
