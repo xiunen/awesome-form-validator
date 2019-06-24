@@ -1,6 +1,6 @@
-import validator from './validator';
-import * as rules from './rules';
+import Validator from './validator'
+import * as validateRules from './rules'
 
-export const validateRules = rules;
+export const rules = validateRules
 
-export default validator;
+export default Validator
