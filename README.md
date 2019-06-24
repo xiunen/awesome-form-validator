@@ -1,13 +1,13 @@
-# awesome-validator
+# awesome-form-validator
 An awesome form validator
 
 ## Home to use
 
 ```javascript
 // via import
-import Validator, {rules} from 'awesome-validator';
+import Validator, {rules} from 'awesome-form-validator';
 //via require
-const {default:Validator, rules} = require('awesome-validator');
+const {default:Validator, rules} = require('awesome-form-validator');
 
 
 const form = {username:"test", password:'', retype: 'test'};

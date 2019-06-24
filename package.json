@@ -1,8 +1,8 @@
 {
-  "name": "awesome-validator",
+  "name": "awesome-form-validator",
   "version": "1.0.1",
   "main": "index.js",
-  "repository": "git@github.com:xiunen/awesome-validator.git",
+  "repository": "git@github.com:xiunen/awesome-form-validator.git",
   "author": "xiunen <xiunen@163.com>",
   "license": "MIT",
   "devDependencies": {

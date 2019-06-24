@@ -1,7 +1,7 @@
 module.exports = {
   mode: 'production',
   output: {
-    library: 'AwesomeValidator',
+    library: 'AwesomeFormValidator',
     libraryTarget: 'umd',
     globalObject: 'this'
   },
