@@ -75,8 +75,8 @@ describe('test validate', () => {
     expect(result).toBeFalsy();
 
     expect(messages).toEqual({
-      "password": ["length btween 6 to 20 required"],
-      "retype": ["item required", "retype error"],
+      "password": ['item required',"length btween 6 to 20 required"],
+      "retype": [ "retype error"],
       "username": ["invalid, lenth less than 6 charactors"],
       "age": [
         "number btween 18 to 60 required",
