@@ -1,3 +1,7 @@
+## 1.0.4 (Jue 28, 2019)
+
+1. fix incorrect implementation of validate required rule
+
 ## 1.0.3 (Jue 24, 2019)
 
 1. set main in `package.json`

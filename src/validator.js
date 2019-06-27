@@ -6,7 +6,7 @@ import {
 } from './rules'
 
 const validateFuncMap = {
-  [REQUIRED.type]: value => !value && (typeof value !== 'number'),
+  [REQUIRED.type]: value =>  (typeof value === 'number') || value,
 
   [MIN_LENGTH.type]: (value, length) => {
     if (!length) return true
