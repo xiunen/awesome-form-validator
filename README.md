@@ -10,7 +10,14 @@ import Validator, {rules} from 'awesome-form-validator';
 const {default:Validator, rules} = require('awesome-form-validator');
 
 
-const form = {username:"test", password:'', retype: 'test'};
+const dataForm = {
+  username:"test", 
+  password:'', 
+  retype: 'test',
+  info:{
+    age:10
+  }
+};
 const validationConfig = {
   username: [
     {
@@ -35,15 +42,26 @@ const validationConfig = {
       },
       message: 'retype error'
     }
-  ]
+  ],
+  info: {
+    age: [
+      {
+        ...rules.MIN,
+        value: 18
+      }
+    ]
+  }
 }
 
-const {result, messages} = Validator.validate(form, validationConfig);
+const {result, messages} = Validator.validate(dataForm, validationConfig);
 //  result => false
 //  messages => {
 //    username: ['invalid, lenth less than 6 charactors'],
 //    password: ['required', length btween 6 to 20 required],
 //    retype: ['retype error']
+//    info: {
+//      age:['more than 18 required']
+//    }
 //  }
 
 ```

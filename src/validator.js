@@ -2,11 +2,11 @@ import {
   REQUIRED,
   MIN_LENGTH, MAX_LENGTH, LENGTH_BETWEEN,
   NUMBER, NUMBER_BETWEEN, MIN, MAX,
-  ARRAY, PATTERN
+  ARRAY, PATTERN, FUNCTION
 } from './rules'
 
 const validateFuncMap = {
-  [REQUIRED.type]: value =>  (typeof value === 'number') || value,
+  [REQUIRED.type]: value => (typeof value === 'number') || value,
 
   [MIN_LENGTH.type]: (value, length) => {
     if (!length) return true
@@ -51,26 +51,26 @@ const validateFuncMap = {
   },
 
   [MAX.type]: (value, target) => {
-    if (Number.isNaN(value)) return false
+    if (Number.isNaN(value - 0)) return false
 
     if (typeof target !== 'number') return true
 
     return (value - 0) <= target
   },
   [MIN.type]: (value, target) => {
-    if (Number.isNaN(value)) return false
+    if (Number.isNaN(value - 0)) return false
 
     if (typeof target !== 'number') return true
 
     return (value - 0) >= target
   },
 
-  [NUMBER.type]: value => !Number.isNaN(value),
+  [NUMBER.type]: value => !Number.isNaN(value - 0),
 
   [NUMBER_BETWEEN.type]: (value, [min, max]) => {
     if ((typeof min !== 'number') || (typeof max !== 'number') || (min > max)) return true
 
-    if (Number.isNaN(value)) return false
+    if (Number.isNaN(value - 0)) return false
 
     const numberValue = value - 0
 
@@ -90,7 +90,7 @@ const validateFuncMap = {
 }
 
 class Validator {
-  constructor() {
+  constructor () {
     this.messages = {
       [REQUIRED.type]: 'required',
       [MIN_LENGTH.type]: 'more than {{number}} chars required',
@@ -101,11 +101,12 @@ class Validator {
       [NUMBER.type]: 'number required',
       [NUMBER_BETWEEN.type]: 'number btween {{min}} to {{max}} required',
       [ARRAY.type]: 'array required',
-      [PATTERN.type]: 'format not matched'
+      [PATTERN.type]: 'format not matched',
+      [FUNCTION.type]: 'invalid'
     }
   }
 
-  static getInstance() {
+  static getInstance () {
     if (!Validator.instance) {
       Validator.instance = new Validator()
     }
@@ -113,7 +114,7 @@ class Validator {
     return Validator.instance
   }
 
-  setMessages(messages) {
+  setMessages (messages) {
     this.messages = {
       ...this.messages,
       ...messages
@@ -126,43 +127,55 @@ class Validator {
      * @param {Object} form
      * @param {Object} rules, format like [{type:'required', message:'required'},{type:'minlength', value: 6, message:"more than {{number}} chars required"}]
      */
-  validate(form = {}, rules = {}) {
+  validate (form = {}, rules = {}) {
     let result = true
     const messages = {}
+    const self = this
 
     Object.keys(rules || {}).forEach((field) => {
       const value = form[field]
 
-      rules[field].forEach((rule) => {
-        let validateResult = true
-        if (typeof rule.value === 'function') {
-          validateResult = rule.value(value, rule.value, form)
-        } else {
-          validateResult = validateFuncMap[rule.type](value, rule.value, form)
-        }
-
-        if (!validateResult) {
-          result = false
-          messages[field] = messages[field] || []
-
-          const replacement = {
-            field
+      if (Array.isArray(rules[field])) {
+        rules[field].forEach((rule) => {
+          let validateResult = true
+          if (typeof rule.value === 'function') {
+            validateResult = rule.value(value, rule.value, form)
+          } else {
+            validateResult = validateFuncMap[rule.type](value, rule.value, form)
           }
 
-          if (Array.isArray(rule.value)) {
-            replacement.min = rule.value[0]
-            replacement.max = rule.value[1]
-          } else if (typeof rule.value === 'number') {
-            replacement.number = rule.value
+          if (!validateResult) {
+            result = false
+            messages[field] = messages[field] || []
+
+            const replacement = {
+              field
+            }
+
+            if (Array.isArray(rule.value)) {
+              replacement.min = rule.value[0]
+              replacement.max = rule.value[1]
+            } else if (typeof rule.value === 'number') {
+              replacement.number = rule.value
+            }
+
+            const reg = /\{\{(\w+)\}\}/g
+            const message = (rule.message || this.messages[rule.type]).replace(reg, (toReplaced, matched) => replacement[matched] || '')
+
+            messages[field].push(message)
           }
+        })
+      } else {
+        const { result: fieldResult, messages: fieldMessages } = self.validate(value, rules[field])
 
-          const reg = /\{\{(\w+)\}\}/g
-          const message = (rule.message || this.messages[rule.type]).replace(reg, (toReplaced, matched) => replacement[matched] || '')
+        result = fieldResult
 
-          messages[field].push(message)
+        if (!fieldResult) {
+          messages[field] = fieldMessages
         }
-      })
+      }
     })
+
 
     return {
       result,
