@@ -16,7 +16,8 @@ const dataForm = {
   retype: 'test',
   info:{
     age:10
-  }
+  },
+  gender:'F',
 };
 const validationConfig = {
   username: [
@@ -50,7 +51,13 @@ const validationConfig = {
         value: 18
       }
     ]
-  }
+  },
+  gender:[
+    {
+      ...rules.CONTAINED,
+      value: ['F','M']
+    }
+  ]
 }
 
 const {result, messages} = Validator.validate(dataForm, validationConfig);
@@ -128,6 +135,7 @@ const {result, messages} = Validator.validate(dataForm, validationConfig);
 |  number |   |  NUMBER | is number?  |
 |  number_btween |[false, false] | NUMBER_BETWEEN  |   number between range  |
 |  array |   |  ARRAY |  is array?  |
+|  contained |  [] |  CONTAINED |  value is contained?, value can be array or non-array  |
 | pattern  | false  |  PATTERN | pattern matched  |
 | function  |   ()=>true   |  FUNCTION | user defined validate function|
 

@@ -13,7 +13,8 @@ describe('test validate', () => {
     bio: 'test',
     age: 15,
     nickanme: 'tEst',
-    tags: ['hello', 'world']
+    tags: ['hello', 'world'],
+    gender: 'Female'
   }
   const validationConfig = {
     username: [
@@ -64,8 +65,16 @@ describe('test validate', () => {
       {
         ...rules.MAX_LENGTH,
         value: 3
+      },
+      {
+        ...rules.CONTAINED,
+        value: ['hello', 'world', 'cool']
       }
-    ]
+    ],
+    gender: [{
+      ...rules.CONTAINED,
+      value: ['F', 'M']
+    }]
   }
 
   test('should return false', () => {
@@ -85,7 +94,8 @@ describe('test validate', () => {
       ],
       nickname: [
         'format not matched'
-      ]
+      ],
+      gender: ['out of valid values']
     })
   })
 

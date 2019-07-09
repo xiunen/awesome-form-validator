@@ -2,7 +2,7 @@ import {
   REQUIRED,
   MIN_LENGTH, MAX_LENGTH, LENGTH_BETWEEN,
   NUMBER, NUMBER_BETWEEN, MIN, MAX,
-  ARRAY, PATTERN, FUNCTION
+  ARRAY, PATTERN, FUNCTION, CONTAINED
 } from './rules'
 
 const validateFuncMap = {
@@ -85,12 +85,18 @@ const validateFuncMap = {
     if (!(typeof value === 'string') && !(typeof value === 'number')) return false
 
     return pattern.test(value)
+  },
+  [CONTAINED.type]: (value, array = []) => {
+    if (Array.isArray(value)) {
+      return !value.filter(item => !array.includes(item)).length
+    }
+    return array.includes(value)
   }
 
 }
 
 class Validator {
-  constructor () {
+  constructor() {
     this.messages = {
       [REQUIRED.type]: 'required',
       [MIN_LENGTH.type]: 'more than {{number}} chars required',
@@ -102,11 +108,12 @@ class Validator {
       [NUMBER_BETWEEN.type]: 'number btween {{min}} to {{max}} required',
       [ARRAY.type]: 'array required',
       [PATTERN.type]: 'format not matched',
-      [FUNCTION.type]: 'invalid'
+      [FUNCTION.type]: 'invalid',
+      [CONTAINED.type]: 'out of valid values'
     }
   }
 
-  static getInstance () {
+  static getInstance() {
     if (!Validator.instance) {
       Validator.instance = new Validator()
     }
@@ -114,7 +121,7 @@ class Validator {
     return Validator.instance
   }
 
-  setMessages (messages) {
+  setMessages(messages) {
     this.messages = {
       ...this.messages,
       ...messages
@@ -127,7 +134,7 @@ class Validator {
      * @param {Object} form
      * @param {Object} rules, format like [{type:'required', message:'required'},{type:'minlength', value: 6, message:"more than {{number}} chars required"}]
      */
-  validate (form = {}, rules = {}) {
+  validate(form = {}, rules = {}) {
     let result = true
     const messages = {}
     const self = this

@@ -50,3 +50,8 @@ export const FUNCTION = {
   type: 'function',
   value: () => true
 }
+
+export const CONTAINED = {
+  type: 'contained',
+  value: []
+}

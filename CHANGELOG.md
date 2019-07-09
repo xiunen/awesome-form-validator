@@ -1,3 +1,7 @@
+## 1.0.5 (Jul 9, 2019)
+
+1. add contained rules
+
 ## 1.0.4 (Jue 28, 2019)
 
 1. fix incorrect implementation of validate required rule
