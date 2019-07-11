@@ -2,7 +2,7 @@ import {
   REQUIRED,
   MIN_LENGTH, MAX_LENGTH, LENGTH_BETWEEN,
   NUMBER, NUMBER_BETWEEN, MIN, MAX,
-  ARRAY, PATTERN, FUNCTION, CONTAINED
+  ARRAY, PATTERN, FUNCTION, CONTAINED, VALIDATE_ARRAY
 } from './rules'
 
 const validateFuncMap = {
@@ -96,7 +96,7 @@ const validateFuncMap = {
 }
 
 class Validator {
-  constructor() {
+  constructor () {
     this.messages = {
       [REQUIRED.type]: 'required',
       [MIN_LENGTH.type]: 'more than {{number}} chars required',
@@ -113,7 +113,7 @@ class Validator {
     }
   }
 
-  static getInstance() {
+  static getInstance () {
     if (!Validator.instance) {
       Validator.instance = new Validator()
     }
@@ -121,11 +121,43 @@ class Validator {
     return Validator.instance
   }
 
-  setMessages(messages) {
+  setMessages (messages) {
     this.messages = {
       ...this.messages,
       ...messages
     }
+  }
+
+  validateItem (value, rules, form) {
+    let result = true
+    const messages = []
+    rules.forEach((rule) => {
+      let validateResult = true
+
+      if (typeof rule.value === 'function') {
+        validateResult = rule.value(value, rule.value, form)
+      } else {
+        validateResult = validateFuncMap[rule.type](value, rule.value, form)
+      }
+
+      if (!validateResult) {
+        result = false
+
+        const replacement = {}
+        if (Array.isArray(rule.value)) {
+          replacement.min = rule.value[0]
+          replacement.max = rule.value[1]
+        } else if (typeof rule.value === 'number') {
+          replacement.number = rule.value
+        }
+        const reg = /\{\{(\w+)\}\}/g
+        const message = (rule.message || this.messages[rule.type]).replace(reg, (toReplaced, matched) => replacement[matched] || '')
+
+        messages.push(message)
+      }
+    })
+
+    return { result, messages }
   }
 
 
@@ -134,50 +166,45 @@ class Validator {
      * @param {Object} form
      * @param {Object} rules, format like [{type:'required', message:'required'},{type:'minlength', value: 6, message:"more than {{number}} chars required"}]
      */
-  validate(form = {}, rules = {}) {
+  validate (form = {}, originRules = {}) {
+    const isArray = Array.isArray(originRules) && originRules.includes(VALIDATE_ARRAY)
+    const rules = Array.isArray(originRules) ? originRules.filter(item => item !== VALIDATE_ARRAY) : originRules
     let result = true
-    const messages = {}
     const self = this
+    const messages = {}
+
+    if (isArray) {
+      const arrayMessages = form.map((item) => {
+        const { result: itemResult, messages: itemMessages } = self.validate(item, rules)
+        if (!itemResult) {
+          result = itemResult
+        }
+        return itemMessages
+      })
+
+      return {
+        result,
+        messages: result ? [] : arrayMessages
+      }
+    }
+    // 单字段校验
+    if (typeof form !== 'object') return this.validateItem(form, rules)
 
     Object.keys(rules || {}).forEach((field) => {
       const value = form[field]
 
       if (Array.isArray(rules[field])) {
-        rules[field].forEach((rule) => {
-          let validateResult = true
-          if (typeof rule.value === 'function') {
-            validateResult = rule.value(value, rule.value, form)
-          } else {
-            validateResult = validateFuncMap[rule.type](value, rule.value, form)
-          }
+        const { result: subResult, messages: subMessages } = this.validateItem(value, rules[field], form)
 
-          if (!validateResult) {
-            result = false
-            messages[field] = messages[field] || []
-
-            const replacement = {
-              field
-            }
-
-            if (Array.isArray(rule.value)) {
-              replacement.min = rule.value[0]
-              replacement.max = rule.value[1]
-            } else if (typeof rule.value === 'number') {
-              replacement.number = rule.value
-            }
-
-            const reg = /\{\{(\w+)\}\}/g
-            const message = (rule.message || this.messages[rule.type]).replace(reg, (toReplaced, matched) => replacement[matched] || '')
-
-            messages[field].push(message)
-          }
-        })
+        if (!subResult) {
+          result = subResult
+          messages[field] = subMessages
+        }
       } else {
         const { result: fieldResult, messages: fieldMessages } = self.validate(value, rules[field])
 
-        result = fieldResult
-
         if (!fieldResult) {
+          result = fieldResult
           messages[field] = fieldMessages
         }
       }

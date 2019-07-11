@@ -106,8 +106,10 @@ describe('test validate', () => {
         username: 'test',
         password: '',
         retype: 'test',
+        score: 90,
         info: {
-          age: 10
+          age: 10,
+          level: 'high'
         }
       }
     }
@@ -131,11 +133,29 @@ describe('test validate', () => {
           ...rules.FUNCTION,
           value: (value, rule, form) => value === form.password
         }],
+        score: [{
+          ...rules.MAX,
+          value: 'mid'
+        }],
         info: {
           age: [{
             ...rules.MIN,
             value: 18
-          }]
+          }, {
+            ...rules.MAX,
+            value: 100
+          }],
+          level: [
+            {
+              ...rules.MIN,
+              value: 1
+            },
+
+            {
+              ...rules.MAX,
+              value: 100
+            }
+          ]
         }
       }
     }
@@ -146,12 +166,52 @@ describe('test validate', () => {
 
     expect(messages).toEqual({
       login: {
-        info: { age: ['more than 18 required'] },
+        info: {
+          age: ['more than 18 required'],
+          level: [
+            'more than 1 required',
+            'less than 100 required'
+          ]
+        },
         password: ['item required'],
         retype: ['invalid'],
         username: ['more than 6 chars required']
       },
       tagId: ['number required']
     })
+  })
+
+  test('single value', () => {
+    const { result, messages } = Validator.validate(18, [{
+      ...rules.MIN,
+      value: 20
+    }])
+
+    expect(result).toBeFalsy()
+    expect(messages).toEqual([
+      'more than 20 required'
+    ])
+  })
+
+  test('array', () => {
+    const { result, messages } = Validator.validate([17, 5], [{
+      ...rules.MIN,
+      value: 8
+    },rules.VALIDATE_ARRAY])
+
+    expect(result).toBeFalsy()
+    expect(messages).toEqual([[],["more than 8 required"]
+    ])
+  })
+
+  test('nested array', () => {
+    const { result, messages } = Validator.validate([{name:18912}], [{name: {
+      ...rules.MAX_LENGTH,
+      value: 3
+    }},rules.VALIDATE_ARRAY])
+
+    expect(result).toBeFalsy()
+    expect(messages).toEqual([[],["more than 8 required"]
+    ])
   })
 })
