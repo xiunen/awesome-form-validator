@@ -1,3 +1,7 @@
+## 1.0.6 (Jul 11, 2019)
+
+1. validate array elements
+
 ## 1.0.5 (Jul 9, 2019)
 
 1. add contained rules

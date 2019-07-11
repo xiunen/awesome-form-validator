@@ -73,6 +73,33 @@ const {result, messages} = Validator.validate(dataForm, validationConfig);
 
 ```
 
+```javascript
+  //validate array
+const dataForm = [1,5]
+const validationConfig = [
+  {
+    ...rules.MIN_LENGTH,
+    value:3
+  },
+  [{
+    ...rules.MIN,
+    value:3
+  },{
+    ...rules.MAX,
+    value:3
+  }] //array to validate array element
+]
+const {result, messages} = Validator.validate(dataForm, validationConfig);
+// [ 
+//  'more than 3 chars required',
+//  [ 
+//    [ 'more than 3 required' ], 
+//    [ 'less than 3 required' ] 
+//  ] 
+// ]
+
+```
+
 ## API
 
 ### **Validator**, validator instance

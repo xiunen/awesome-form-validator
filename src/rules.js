@@ -55,5 +55,3 @@ export const CONTAINED = {
   type: 'contained',
   value: []
 }
-
-export const VALIDATE_ARRAY = 'array'

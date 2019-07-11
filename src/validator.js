@@ -2,7 +2,7 @@ import {
   REQUIRED,
   MIN_LENGTH, MAX_LENGTH, LENGTH_BETWEEN,
   NUMBER, NUMBER_BETWEEN, MIN, MAX,
-  ARRAY, PATTERN, FUNCTION, CONTAINED, VALIDATE_ARRAY
+  ARRAY, PATTERN, FUNCTION, CONTAINED
 } from './rules'
 
 const validateFuncMap = {
@@ -133,11 +133,34 @@ class Validator {
     const messages = []
     rules.forEach((rule) => {
       let validateResult = true
+      if (Array.isArray(rule)) { // array item validate
+        let arrayResult = true
+        const arrayMessage = value.map((item) => {
+          const { result: itemResult, messages: itemMessages } = this.validate(item, rule, form)
 
-      if (typeof rule.value === 'function') {
+          if (!itemResult) {
+            arrayResult = false
+          }
+
+          return itemMessages
+        })
+
+        if (!arrayResult) {
+          result = false
+          messages.push(arrayMessage)
+        }
+
+        return
+      } if (typeof rule.value === 'function') {
         validateResult = rule.value(value, rule.value, form)
-      } else {
+      } else if (rule.type) {
         validateResult = validateFuncMap[rule.type](value, rule.value, form)
+      } else if (typeof rule === 'object') {
+        const { result: itemResult, messages: itemMessages } = this.validate(value, rule, form)
+        if (!itemResult) {
+          result = false
+          messages.push(itemMessages)
+        }
       }
 
       if (!validateResult) {
@@ -166,42 +189,24 @@ class Validator {
      * @param {Object} form
      * @param {Object} rules, format like [{type:'required', message:'required'},{type:'minlength', value: 6, message:"more than {{number}} chars required"}]
      */
-  validate (form = {}, originRules = {}) {
-    const isArray = Array.isArray(originRules) && originRules.includes(VALIDATE_ARRAY)
-    const rules = Array.isArray(originRules) ? originRules.filter(item => item !== VALIDATE_ARRAY) : originRules
+  validate (form = {}, rules = {}, origionalForm) {
     let result = true
-    const self = this
     const messages = {}
-
-    if (isArray) {
-      const arrayMessages = form.map((item) => {
-        const { result: itemResult, messages: itemMessages } = self.validate(item, rules)
-        if (!itemResult) {
-          result = itemResult
-        }
-        return itemMessages
-      })
-
-      return {
-        result,
-        messages: result ? [] : arrayMessages
-      }
-    }
-    // 单字段校验
-    if (typeof form !== 'object') return this.validateItem(form, rules)
+    // 单字段校验或数组
+    if (Array.isArray(rules)) return this.validateItem(form, rules, origionalForm || form)
 
     Object.keys(rules || {}).forEach((field) => {
       const value = form[field]
 
       if (Array.isArray(rules[field])) {
-        const { result: subResult, messages: subMessages } = this.validateItem(value, rules[field], form)
+        const { result: subResult, messages: subMessages } = this.validate(value, rules[field], origionalForm || form)
 
         if (!subResult) {
           result = subResult
           messages[field] = subMessages
         }
       } else {
-        const { result: fieldResult, messages: fieldMessages } = self.validate(value, rules[field])
+        const { result: fieldResult, messages: fieldMessages } = this.validate(value, rules[field], origionalForm || form)
 
         if (!fieldResult) {
           result = fieldResult

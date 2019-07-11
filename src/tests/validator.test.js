@@ -194,24 +194,83 @@ describe('test validate', () => {
   })
 
   test('array', () => {
-    const { result, messages } = Validator.validate([17, 5], [{
+    const { result, messages } = Validator.validate([17, 5], [[{
       ...rules.MIN,
       value: 8
-    },rules.VALIDATE_ARRAY])
+    }], {
+      ...rules.MIN_LENGTH,
+      value: 3
+    }])
 
     expect(result).toBeFalsy()
-    expect(messages).toEqual([[],["more than 8 required"]
+    expect(messages).toEqual([
+      [[], ['more than 8 required']],
+      'more than 3 chars required'
+    ])
+  })
+
+  test('array in array', () => {
+    const { result, messages } = Validator.validate([[17, 5, 4], [2, 13]], [
+      [
+        [{
+          ...rules.MIN,
+          value: 7
+        }],
+        {
+          ...rules.MIN_LENGTH,
+          value: 3
+        }
+      ]
+    ])
+
+
+    expect(result).toBeFalsy()
+    expect(messages).toEqual([
+      [
+        [
+          [[], ['more than 7 required'], ['more than 7 required']]
+        ],
+        [
+          [['more than 7 required'], []],
+          'more than 3 chars required'
+        ]
+      ]
     ])
   })
 
   test('nested array', () => {
-    const { result, messages } = Validator.validate([{name:18912}], [{name: {
-      ...rules.MAX_LENGTH,
-      value: 3
-    }},rules.VALIDATE_ARRAY])
+    const { result, messages } = Validator.validate([{ name: 18912 }, { name: 18 }, { name: '16666' }], [
+      [{
+        name: [{
+          ...rules.MAX_LENGTH,
+          value: 3
+        }]
+      }]
+    ])
 
     expect(result).toBeFalsy()
-    expect(messages).toEqual([[],["more than 8 required"]
+    expect(messages).toEqual([
+      [
+        [{ name: ['less than 3 chars required'] }],
+        [],
+        [{ name: ['less than 3 chars required'] }]
+      ]
     ])
+  })
+
+  test('array in oobject', () => {
+    const { result, messages } = Validator.validate({ tags: ['hello world'] }, {
+      tags: [
+        [{
+          ...rules.MAX_LENGTH,
+          value: 5
+        }], {
+          ...rules.MIN_LENGTH,
+          value: 2
+        }
+      ]
+    })
+    expect(result).toBeFalsy()
+    expect(messages).toEqual({ tags: [[['less than 5 chars required']], 'more than 2 chars required'] })
   })
 })
