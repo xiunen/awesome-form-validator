@@ -199,7 +199,7 @@ class Validator {
       const value = form[field]
 
       if (Array.isArray(rules[field])) {
-        const { result: subResult, messages: subMessages } = this.validate(value, rules[field], origionalForm || form)
+        const { result: subResult, messages: subMessages } = this.validateItem(value, rules[field], origionalForm || form)
 
         if (!subResult) {
           result = subResult

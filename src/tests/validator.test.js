@@ -77,6 +77,15 @@ describe('test validate', () => {
     }]
   }
 
+  test('shold return false', () => {
+    const { result, messages } = Validator.validate({}, {
+      name: [rules.REQUIRED]
+    })
+
+    expect(result).toBeFalsy()
+    expect(messages).toEqual({ name: ['item required'] })
+  })
+
   test('should return false', () => {
     const { result, messages } = Validator.validate(dataForm, validationConfig)
 

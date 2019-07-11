@@ -1,3 +1,7 @@
+## 1.0.7 (Jul 11, 2019)
+
+1. fix: object can be validated
+
 ## 1.0.6 (Jul 11, 2019)
 
 1. validate array elements
