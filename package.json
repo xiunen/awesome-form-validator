@@ -3,7 +3,7 @@
   "version": "1.0.7",
   "main": "dist/main.js",
   "repository": "git@github.com:xiunen/awesome-form-validator.git",
-  "author": "xiunen <xiunen@163.com>",
+  "author": "xiunen <xiunen@163.com> (https://github.com/xiunen)",
   "license": "MIT",
   "devDependencies": {
     "@babel/core": "^7.4.5",
